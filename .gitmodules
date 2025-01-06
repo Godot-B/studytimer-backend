@@ -1,0 +1,3 @@
+[submodule "studytimer-frontend"]
+	path = studytimer-frontend
+	url = https://github.com/H0sungKim/iOSHackathon
