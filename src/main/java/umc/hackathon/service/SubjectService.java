@@ -26,14 +26,11 @@ public class SubjectService {
     private final DatePlanRepository datePlanRepository;
     private final KeywordRepository keywordRepository;
 
-    // 홈 화면에 필요한 과목 리스트 반환
     public List<Subject> getSubjectsList() {
-        List<Subject> subjects = subjectRepository.findAll();
-        return subjects;
+        return subjectRepository.findAll();
     }
 
     public List<String> searchKeywords(String userInput) {
-
         return keywordRepository.findByKeywordNameContainingIgnoreCase(userInput).stream()
                 .map(Keyword::getKeywordName).toList();
     }

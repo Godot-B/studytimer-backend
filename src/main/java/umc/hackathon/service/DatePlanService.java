@@ -104,4 +104,15 @@ public class DatePlanService {
                 .hourlyStudyTimesByDate(hourlyStudyTimesDTOList)
                 .build();
     }
+
+    // 뷰 테스트용 DB 업데이트 메서드
+/*    @Transactional
+    public void calcTotalStudyByHour() {
+        for (DatePlan datePlan : datePlanRepository.findAll()) {
+            float totalStudyTimes = datePlan.getHourlyStudyTimes().values().stream().
+                    mapToInt(Integer::intValue).sum();
+            totalStudyTimes += (float) Math.random();
+            datePlan.setTotalStudyTime(totalStudyTimes);
+        }
+    }*/
 }

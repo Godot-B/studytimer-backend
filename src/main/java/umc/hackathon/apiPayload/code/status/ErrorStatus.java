@@ -18,6 +18,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 과목 관련 에러
     SUBJECT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SUBJECT4001", "과목이 없습니다."),
+    INVALID_SUBJECT_INDEX(HttpStatus.BAD_REQUEST, "SUBJECT4002", "과목 리스트의 인덱스를 벗어났습니다."),
 //    SUBJECT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "SUBJECT4002", "같은 이름의 완료하지 않은 과목이 존재합니다."),
 
     // 날짜 관련 에러

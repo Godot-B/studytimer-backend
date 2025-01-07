@@ -29,7 +29,7 @@ public class TimerService {
 
         DatePlan todayPlan = datePlanRepository.findByDate(LocalDate.now())
                 .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
-        Integer subjectGoalTime = todayPlan.getSubjectList().get(subjectIdx).getSubjectGoalTime();
+        Integer subjectGoalTime = getCurrentSubject(subjectIdx, todayPlan).getSubjectGoalTime();
 
         return DatePlanResponseDTO.TimerViewDTO.builder()
                 .goalTime(todayPlan.getGoalTime())
@@ -38,7 +38,8 @@ public class TimerService {
                 .build();
     }
 
-    // 자정마다 새로운 DatePlan 생성
+    // 완료되지 않은 과목이 존재한 채로 자정이 되면
+    // 새로운 DatePlan 생성하고 과목리스트 이어받음
     @Transactional
     @Scheduled(cron = "0 0 0 * * ?")
     public void midnightCopyDatePlan() {
@@ -53,8 +54,8 @@ public class TimerService {
         }
 
         List<Subject> remainSubjectList = yesterdayPlan.getSubjectList().stream()
-                .filter(subject -> !subject.getCompleted())  // 완료되지 않은 Subject만 오늘의 datePlan에 깊은 복사
-                .map(Subject::copy)
+                .filter(subject -> !subject.getCompleted())  // 완료되지 않은 subject만
+                .map(Subject::copy) // 오늘의 datePlan에 깊은 복사
                 .collect(Collectors.toList());
 
         DatePlan newDatePlan = DatePlan.builder()
@@ -94,6 +95,15 @@ public class TimerService {
         } else {
             return calcSameDayStudyTime(startDatePlan, subject, startTime, endTime);
         }
+    }
+
+    private Subject getCurrentSubject(Integer subjectIdx, DatePlan datePlan) {
+
+        if (subjectIdx < 0 || subjectIdx >= datePlan.getSubjectList().size()) {
+            throw new SubjectHandler(ErrorStatus.INVALID_SUBJECT_INDEX);
+        }
+
+        return datePlan.getSubjectList().get(subjectIdx);
     }
 
     private Subject calcSameDayStudyTime(DatePlan startDatePlan, Subject subject, LocalDateTime startTime, LocalDateTime endTime) {
@@ -150,17 +160,5 @@ public class TimerService {
         }
 
         return totalMinutes;
-    }
-
-    public Subject getCurrentSubject(Integer subjectIdx, DatePlan datePlan) {
-
-        Subject subject;
-        try {
-            subject = datePlan.getSubjectList().get(subjectIdx);
-        }
-        catch (IndexOutOfBoundsException e) {
-            throw new SubjectHandler(ErrorStatus.SUBJECT_NOT_FOUND);
-        }
-        return subject;
     }
 }

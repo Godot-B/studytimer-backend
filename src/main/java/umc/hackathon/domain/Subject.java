@@ -20,7 +20,7 @@ public class Subject extends BaseEntity {       // 과목이자 타이머
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subject_keyword_id")
+    @JoinColumn(name = "keyword_id")
     private Keyword keyword;
 
     @ManyToOne(fetch = FetchType.LAZY)

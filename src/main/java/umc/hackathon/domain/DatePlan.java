@@ -58,4 +58,7 @@ public class DatePlan extends BaseEntity {
         }
     }
 
+/*    public void setTotalStudyTime(Float studyTime) {
+        this.totalStudyTime = studyTime;
+    }*/
 }
