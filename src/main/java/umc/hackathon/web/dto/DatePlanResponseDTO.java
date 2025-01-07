@@ -53,6 +53,8 @@ public class DatePlanResponseDTO {
     @AllArgsConstructor
     public static class TimerViewDTO {
 
+        Float remainTime; // 과목 별 남은 시간
+
         Integer goalTime;
 
         Float totalStudyTime; // 분단위(소수점)

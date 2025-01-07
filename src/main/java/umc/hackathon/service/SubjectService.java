@@ -51,6 +51,7 @@ public class SubjectService {
                     .subjectGoalTime(goalTime)
                     .subjectStudyTime(0.0f)
                     .breakTime(10) // 휴식시간 기본값 10분
+                    .onListView(true)
                     .started(false)
                     .completed(false)
                     .build();
@@ -76,11 +77,8 @@ public class SubjectService {
         Boolean isStarted = subject.getStarted();
 
         if (isStarted) {
-            DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
-            todayPlan.getSubjectList().remove(subject);
-
+            subject.setOnListView(false);
             return "계획에서만 " + subject.getSubjectName();
-
         } else {
             Keyword keyword = subject.getKeyword();
 

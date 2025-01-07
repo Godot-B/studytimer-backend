@@ -29,12 +29,15 @@ public class TimerService {
     public DatePlanResponseDTO.TimerViewDTO getTimerBySubjectIdx(Integer subjectIdx) {
 
         DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
-        Integer subjectGoalTime = getSubjectByIndex(subjectIdx, todayPlan).getSubjectGoalTime();
+        Subject subject = getSubjectByIndex(subjectIdx, todayPlan);
+        Integer subjectGoalTime = subject.getSubjectGoalTime();
+        Float subjectStudyTime = subject.getSubjectStudyTime();
 
         return DatePlanResponseDTO.TimerViewDTO.builder()
                 .goalTime(todayPlan.getGoalTime())
                 .totalStudyTime(todayPlan.getTotalStudyTime())
                 .subjectGoalTime(subjectGoalTime)
+                .remainTime(subjectGoalTime - subjectStudyTime)
                 .build();
     }
 

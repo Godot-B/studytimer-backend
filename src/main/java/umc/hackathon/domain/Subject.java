@@ -35,9 +35,15 @@ public class Subject extends BaseEntity {       // 과목이자 타이머
 
     private Integer breakTime; // 휴식 시간 : 분 단위
 
+    private Boolean onListView; // 과목 리스트 view 여부
+
     private Boolean started;
 
     private Boolean completed;
+
+    public void setOnListView(Boolean onListView) {
+        this.onListView = onListView;
+    }
 
     public void setStarted(boolean started) {
         this.started = started;
@@ -80,10 +86,11 @@ public class Subject extends BaseEntity {       // 과목이자 타이머
                 .subjectGoalTime(subjectGoalTime)
                 .subjectStudyTime(0.0f)
                 .breakTime(breakTime)
+                .onListView(onListView)
+                .started(started)
                 .completed(completed)
                 .keyword(keyword)
                 .datePlan(datePlan)
-                .started(started)
                 .build();
     }
 }

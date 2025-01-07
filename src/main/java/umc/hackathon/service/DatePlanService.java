@@ -48,7 +48,9 @@ public class DatePlanService {
 
     public List<Subject> getTodaySubjectsList() {
         DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
-        return todayPlan.getSubjectList();
+        return todayPlan.getSubjectList().stream()
+                .filter(Subject::getOnListView)
+                .toList();
     }
 
     public DatePlan findDatePlanByDate(LocalDate date) {
