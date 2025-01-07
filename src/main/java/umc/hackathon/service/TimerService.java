@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +30,7 @@ public class TimerService {
 
         DatePlan todayPlan = datePlanRepository.findByDate(LocalDate.now())
                 .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
-        Integer subjectGoalTime = getCurrentSubject(subjectIdx, todayPlan).getSubjectGoalTime();
+        Integer subjectGoalTime = getSubjectByIndex(subjectIdx, todayPlan).getSubjectGoalTime();
 
         return DatePlanResponseDTO.TimerViewDTO.builder()
                 .goalTime(todayPlan.getGoalTime())
@@ -76,28 +77,25 @@ public class TimerService {
 
     @Transactional
     public Subject calculateStudyTime(Integer subjectIdx, TimerRequestDTO.StudyLogDTO log) {
+
         LocalDateTime startTime = log.getStartTime();
         LocalDateTime endTime = log.getEndTime();
 
-        DatePlan startDatePlan = datePlanRepository.findByDate(startTime.toLocalDate())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
-
-        Subject subject = getCurrentSubject(subjectIdx, startDatePlan);
-
         Duration duration = Duration.between(startTime, endTime);
-
-        // 자정이 지나고 endTime 기록
-        // ** 2일 이상 연속 공부는 고려하지 않음 - 이스터에그 표시 **
-        if (duration.toHours() > 24) {
+        // ** 타이머가 24시간 동작 ? 고려 X - 이스터에그 표시 **
+        if (duration.toHours() >= 24) {
             throw new DatePlanHandler(ErrorStatus.GONGSIN_APPEARED); // 이스터에그를 위한 예외
-        } else if (!startTime.toLocalDate().equals(endTime.toLocalDate())) {
-            return calcCrossMidnightStudyTime(startDatePlan, subject, startTime, endTime);
+        }
+
+        if (startTime.toLocalDate().equals(endTime.toLocalDate())) {
+            return calcSameDayStudyTime(subjectIdx, startTime, endTime);
         } else {
-            return calcSameDayStudyTime(startDatePlan, subject, startTime, endTime);
+            // 자정이 지나고 endTime 기록
+            return calcCrossMidnightStudyTime(subjectIdx, startTime, endTime);
         }
     }
 
-    private Subject getCurrentSubject(Integer subjectIdx, DatePlan datePlan) {
+    private Subject getSubjectByIndex(Integer subjectIdx, DatePlan datePlan) {
 
         if (subjectIdx < 0 || subjectIdx >= datePlan.getSubjectList().size()) {
             throw new SubjectHandler(ErrorStatus.INVALID_SUBJECT_INDEX);
@@ -106,59 +104,84 @@ public class TimerService {
         return datePlan.getSubjectList().get(subjectIdx);
     }
 
-    private Subject calcSameDayStudyTime(DatePlan startDatePlan, Subject subject, LocalDateTime startTime, LocalDateTime endTime) {
-        float totalMinutes = calcTimeDifferAndHourlyStudy(startDatePlan, startTime, endTime);
+    private Subject calcSameDayStudyTime(Integer subjectIdx, LocalDateTime startTime, LocalDateTime endTime) {
+
+        DatePlan startDatePlan = datePlanRepository.findByDate(startTime.toLocalDate())
+                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        float totalMinutes = calcSameDayTimeDifferAndLog(startDatePlan, startTime, endTime);
+
+        Subject subject = getSubjectByIndex(subjectIdx, startDatePlan);
         subject.addStudyTime(totalMinutes);
         return subject;
     }
 
-    private Subject calcCrossMidnightStudyTime(DatePlan startDatePlan, Subject subject, LocalDateTime startTime, LocalDateTime endTime) {
+    private Subject calcCrossMidnightStudyTime(Integer subjectIdx, LocalDateTime startTime, LocalDateTime endTime) {
+        // startTime의 다음 날 자정
+        LocalDateTime midnight = startTime.toLocalDate().atStartOfDay()
+                .plusDays(1);
 
-        LocalDateTime midnight = startTime.toLocalDate().atStartOfDay().plusDays(1); // 자정
+        /*
+          자정 이전 기록
+         */
+        DatePlan startDatePlan = datePlanRepository.findByDate(startTime.toLocalDate())
+                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        Subject subject = getSubjectByIndex(subjectIdx, startDatePlan);
+
         // 어제의 subject <- [startTime ~ 자정] 공부 시간 기록
-        float startToMidnight = calcTimeDifferAndHourlyStudy(startDatePlan, startTime, midnight);
+        float startToMidnight = calcSameDayTimeDifferAndLog(startDatePlan, startTime, midnight);
         subject.addStudyTime(startToMidnight);
 
-        // 오늘의 새로운 datePlan에서, 어제와 같은 이름 과목 찾기 (id가 다르므로)
+        /*
+          자정 이후 기록
+          : 오늘의 새로운 datePlan에서, 어제와 같은 키워드 과목
+         */
         DatePlan todayNewPlan = datePlanRepository.findByDate(endTime.toLocalDate())
                 .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
-        Subject nextDaySubject = findNextDaySubject(todayNewPlan, subject.getSubjectName());
+        Subject nextDaySubject = findNextDaySubject(todayNewPlan, subject.getKeyword().getId());
 
         // 오늘의 subject <- [자정 ~ endTime] 시간 기록
-        float midnightToEndTime = calcTimeDifferAndHourlyStudy(todayNewPlan, midnight, endTime);
+        float midnightToEndTime = calcSameDayTimeDifferAndLog(todayNewPlan, midnight, endTime);
         nextDaySubject.addStudyTime(midnightToEndTime);
 
         return nextDaySubject;
     }
 
-    private Subject findNextDaySubject(DatePlan datePlan, String subjectName) {
-        return datePlan.getSubjectList().stream()
-                .filter(s -> s.getSubjectName().equals(subjectName))
-                .findAny()
-                .orElseThrow(() -> new SubjectHandler(ErrorStatus.SUBJECT_NOT_FOUND));
-    }
-
-    // LocalDateTime 시간 차이 계산해서 리턴
-    //       계산하는 동안 - 시간 별 공부 분포까지 기록!
-    private float calcTimeDifferAndHourlyStudy(DatePlan datePlan, LocalDateTime start, LocalDateTime end) {
+    /**
+     * 시간 별 공부 분포 기록
+     * @return start와 end의 차이 (float 분 단위)
+     */
+    private float calcSameDayTimeDifferAndLog(DatePlan datePlan, LocalDateTime start, LocalDateTime end) {
         Duration duration = Duration.between(start, end);
         float totalMinutes = duration.toMinutes();
 
         int startHour = start.getHour();
         int endHour = end.getHour();
-        if (endHour == 0) endHour = 24;
-
-        // 시작 시간
-        datePlan.getHourlyStudyTimes().merge(startHour, 60 - start.getMinute(), Integer::sum);
-        // 중간 시간
-        for (int hour = startHour + 1; hour < endHour; hour++) {
-            datePlan.getHourlyStudyTimes().merge(hour % 24, 60, Integer::sum);
+        if (startHour != 0 && endHour == 0) {
+            endHour = 24; // 00:00:00 -> 24:00:00
         }
-        // 종료 시간
-        if (startHour != endHour) {
-            datePlan.getHourlyStudyTimes().merge(endHour % 24, end.getMinute(), Integer::sum);
+
+        Map<Integer, Integer> hourlyStudyTimes = datePlan.getHourlyStudyTimes();
+
+        if (startHour == endHour) {
+            hourlyStudyTimes.merge(endHour, end.getMinute() - start.getMinute(), Integer::sum);
+        } else {
+            // 시작 시간
+            hourlyStudyTimes.merge(startHour, 60 - start.getMinute(), Integer::sum);
+            // 중간 시간
+            for (int iterHour = startHour + 1; iterHour < endHour; iterHour++) {
+                hourlyStudyTimes.merge(iterHour, 60, Integer::sum);
+            }
+            // 종료 시간
+            hourlyStudyTimes.merge(endHour, end.getMinute(), Integer::sum);
         }
 
         return totalMinutes;
+    }
+
+    private Subject findNextDaySubject(DatePlan datePlan, Long keywordId) {
+        return datePlan.getSubjectList().stream()
+                .filter(s -> s.getKeyword().getId().equals(keywordId))
+                .findAny()
+                .orElseThrow(() -> new SubjectHandler(ErrorStatus.SUBJECT_NOT_FOUND));
     }
 }
