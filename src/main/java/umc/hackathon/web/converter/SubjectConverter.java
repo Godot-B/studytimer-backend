@@ -4,9 +4,6 @@ import umc.hackathon.domain.Subject;
 import umc.hackathon.web.dto.DatePlanResponseDTO;
 import umc.hackathon.web.dto.SubjectResponseDTO;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SubjectConverter {
 
     public static DatePlanResponseDTO.DeleteResultDTO toDeleteResultDTO(Long deleteSubjectId, String deleteSubjectName) {

@@ -2,15 +2,16 @@ package umc.hackathon.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import umc.hackathon.apiPayload.ApiResponse;
 import umc.hackathon.domain.DatePlan;
-import umc.hackathon.repository.DatePlanRepository;
 import umc.hackathon.service.DatePlanService;
 import umc.hackathon.web.dto.DatePlanResponseDTO;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/stat")

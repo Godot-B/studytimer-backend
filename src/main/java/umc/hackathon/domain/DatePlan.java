@@ -1,4 +1,5 @@
 package umc.hackathon.domain;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -8,7 +9,10 @@ import org.hibernate.type.SqlTypes;
 import umc.hackathon.domain.common.BaseEntity;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -40,7 +44,7 @@ public class DatePlan extends BaseEntity {
         return map;
     }
 
-    private Float totalStudyTime; // ☑️ 전체 과목의 실제 공부 시간을 더해서 계산
+    private Float totalStudyTime;
 
     @Builder.Default
     @OneToMany(mappedBy = "datePlan", cascade = CascadeType.ALL)
@@ -57,8 +61,4 @@ public class DatePlan extends BaseEntity {
             this.totalStudyTime += studyTime;
         }
     }
-
-/*    public void setTotalStudyTime(Float studyTime) {
-        this.totalStudyTime = studyTime;
-    }*/
 }

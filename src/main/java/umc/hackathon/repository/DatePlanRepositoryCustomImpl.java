@@ -9,7 +9,6 @@ import umc.hackathon.apiPayload.exception.handler.DatePlanHandler;
 import umc.hackathon.domain.DatePlan;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
