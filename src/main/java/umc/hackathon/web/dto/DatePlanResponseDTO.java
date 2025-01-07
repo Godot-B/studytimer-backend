@@ -35,6 +35,18 @@ public class DatePlanResponseDTO {
         LocalDateTime createdAt;
     }
 
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HomeViewDTO {
+
+        Float totalRemainTime;
+
+        List<SubjectResponseDTO.SubjectPreviewDTO> subjectPreviewDTOList;
+    }
+
     @Builder
     @Getter
     @NoArgsConstructor

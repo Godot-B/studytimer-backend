@@ -24,22 +24,4 @@ public class SubjectConverter {
                 .breakTime(subject.getBreakTime())
                 .build();
     }
-
-    public static List<SubjectResponseDTO.SubjectPreviewDTO> toSubjectPreviewListDTO(List<Subject> subjects) {
-        List<SubjectResponseDTO.SubjectPreviewDTO> subjectPreviewList = new ArrayList<>();
-
-
-        for (Subject subject : subjects) {
-            float remainTime = subject.getSubjectGoalTime() - subject.getSubjectStudyTime();
-            SubjectResponseDTO.SubjectPreviewDTO subjectDTO = SubjectResponseDTO.SubjectPreviewDTO.builder()
-                    .id(subject.getId())
-                    .subjectName(subject.getSubjectName())
-                    .goalTime(subject.getSubjectGoalTime())
-                    .breakTime(subject.getBreakTime())
-                    .remainTime(remainTime)
-                    .build();
-            subjectPreviewList.add(subjectDTO);
-        }
-        return subjectPreviewList;
-    }
 }

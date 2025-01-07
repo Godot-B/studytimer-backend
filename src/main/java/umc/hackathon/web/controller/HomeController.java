@@ -42,10 +42,10 @@ public class HomeController {
      */
     @Operation(summary = "오늘의 과목 리스트 조회", description = "오늘의 과목 리스트를 조회합니다.")
     @GetMapping("/lists")
-    public ApiResponse<List<SubjectResponseDTO.SubjectPreviewDTO>> getSubjectsList() {
+    public ApiResponse<DatePlanResponseDTO.HomeViewDTO> getSubjectsList() {
 
         List<Subject> subjectList = datePlanService.getTodaySubjectsList();
-        return ApiResponse.onSuccess(SubjectConverter.toSubjectPreviewListDTO(subjectList));
+        return ApiResponse.onSuccess(DatePlanConverter.toHomeViewDTO(subjectList));
     }
 
     /**

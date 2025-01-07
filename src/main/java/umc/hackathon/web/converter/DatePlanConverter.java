@@ -1,10 +1,14 @@
 package umc.hackathon.web.converter;
 
 import umc.hackathon.domain.DatePlan;
+import umc.hackathon.domain.Subject;
 import umc.hackathon.web.dto.DatePlanRequestDTO;
 import umc.hackathon.web.dto.DatePlanResponseDTO;
+import umc.hackathon.web.dto.SubjectResponseDTO;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatePlanConverter {
 
@@ -25,6 +29,32 @@ public class DatePlanConverter {
                 .datePlanId(plan.getId())
                 .date(plan.getDate())
                 .createdAt(plan.getCreatedAt())
+                .build();
+    }
+
+
+    public static DatePlanResponseDTO.HomeViewDTO toHomeViewDTO(List<Subject> subjects) {
+
+        float totalRemainTime = 0.0f;
+
+        List<SubjectResponseDTO.SubjectPreviewDTO> subjectPreviewList = new ArrayList<>();
+        for (Subject subject : subjects) {
+            float remainTime = subject.getSubjectGoalTime() - subject.getSubjectStudyTime();
+            totalRemainTime += remainTime;
+
+            SubjectResponseDTO.SubjectPreviewDTO subjectDTO = SubjectResponseDTO.SubjectPreviewDTO.builder()
+                    .id(subject.getId())
+                    .subjectName(subject.getSubjectName())
+                    .goalTime(subject.getSubjectGoalTime())
+                    .breakTime(subject.getBreakTime())
+                    .remainTime(remainTime)
+                    .build();
+            subjectPreviewList.add(subjectDTO);
+        }
+
+        return DatePlanResponseDTO.HomeViewDTO.builder()
+                .totalRemainTime(totalRemainTime)
+                .subjectPreviewDTOList(subjectPreviewList)
                 .build();
     }
 }
