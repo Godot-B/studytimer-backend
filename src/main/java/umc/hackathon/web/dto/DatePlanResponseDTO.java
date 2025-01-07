@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import umc.hackathon.domain.Keyword;
+import umc.hackathon.domain.Subject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,16 @@ import java.util.Map;
 
 public class DatePlanResponseDTO {
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeleteResultDTO {
+
+        Long deleteSubjectId;
+        String deleteSubjectName;
+        String message;
+    }
     @Builder
     @Getter
     @NoArgsConstructor

@@ -28,8 +28,7 @@ public class TimerService {
 
     public DatePlanResponseDTO.TimerViewDTO getTimerBySubjectIdx(Integer subjectIdx) {
 
-        DatePlan todayPlan = datePlanRepository.findByDate(LocalDate.now())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
         Integer subjectGoalTime = getSubjectByIndex(subjectIdx, todayPlan).getSubjectGoalTime();
 
         return DatePlanResponseDTO.TimerViewDTO.builder()
@@ -48,8 +47,7 @@ public class TimerService {
         LocalDateTime now = LocalDateTime.now();
 
         LocalDateTime yesterday = now.minusDays(1);
-        DatePlan yesterdayPlan = datePlanRepository.findByDate(yesterday.toLocalDate())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan yesterdayPlan = datePlanRepository.findByDateAndThrow(yesterday.toLocalDate());
         if (yesterdayPlan == null) {
             return;
         }
@@ -106,8 +104,7 @@ public class TimerService {
 
     private Subject calcSameDayStudyTime(Integer subjectIdx, LocalDateTime startTime, LocalDateTime endTime) {
 
-        DatePlan startDatePlan = datePlanRepository.findByDate(startTime.toLocalDate())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan startDatePlan = datePlanRepository.findByDateAndThrow(startTime.toLocalDate());
         float totalMinutes = calcSameDayTimeDifferAndLog(startDatePlan, startTime, endTime);
 
         Subject subject = getSubjectByIndex(subjectIdx, startDatePlan);
@@ -123,8 +120,7 @@ public class TimerService {
         /*
           자정 이전 기록
          */
-        DatePlan startDatePlan = datePlanRepository.findByDate(startTime.toLocalDate())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan startDatePlan = datePlanRepository.findByDateAndThrow(startTime.toLocalDate());
         Subject subject = getSubjectByIndex(subjectIdx, startDatePlan);
 
         // 어제의 subject <- [startTime ~ 자정] 공부 시간 기록
@@ -135,8 +131,7 @@ public class TimerService {
           자정 이후 기록
           : 오늘의 새로운 datePlan에서, 어제와 같은 키워드 과목
          */
-        DatePlan todayNewPlan = datePlanRepository.findByDate(endTime.toLocalDate())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan todayNewPlan = datePlanRepository.findByDateAndThrow(endTime.toLocalDate());
         Subject nextDaySubject = findNextDaySubject(todayNewPlan, subject.getKeyword().getId());
 
         // 오늘의 subject <- [자정 ~ endTime] 시간 기록

@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import umc.hackathon.apiPayload.code.status.ErrorStatus;
-import umc.hackathon.apiPayload.exception.handler.DatePlanHandler;
 import umc.hackathon.apiPayload.exception.handler.KeywordHandler;
 import umc.hackathon.domain.DatePlan;
 import umc.hackathon.domain.Subject;
 import umc.hackathon.domain.Keyword;
 import umc.hackathon.repository.DatePlanRepository;
 import umc.hackathon.repository.KeywordRepository;
-import umc.hackathon.repository.SubjectRepository;
 import umc.hackathon.web.converter.DatePlanConverter;
 import umc.hackathon.web.dto.DatePlanRequestDTO;
 import umc.hackathon.web.dto.DatePlanResponseDTO;
@@ -30,28 +28,31 @@ public class DatePlanService {
     private final KeywordRepository keywordRepository;
 
     @Transactional
-    public DatePlan createDatePlan(DatePlanRequestDTO.SetGoalDTO request) {
-
+    public DatePlan createOrUpdateDatePlan(DatePlanRequestDTO.SetGoalDTO request) {
         if (datePlanRepository.findByDate(LocalDate.now()).isPresent()) {
-            throw new DatePlanHandler(ErrorStatus.DATEPLAN_ALREADY_EXIST);
+            return updateGoalTime(request);
+        } else {
+            DatePlan newDatePlan = DatePlanConverter.toDatePlan(request);
+            return datePlanRepository.save(newDatePlan);
         }
-
-        DatePlan newDatePlan = DatePlanConverter.toDatePlan(request);
-
-        return datePlanRepository.save(newDatePlan);
     }
 
     @Transactional
-    public void updateGoalTime(DatePlanRequestDTO.SetGoalDTO request) {
+    public DatePlan updateGoalTime(DatePlanRequestDTO.SetGoalDTO request) {
         DatePlan datePlan = datePlanRepository.findByDate(LocalDate.now())
-                .orElseGet(() -> createDatePlan(request)); // 목표 시간 수정 화면에서 자정이 지난 경우
+                .orElseGet(() -> createOrUpdateDatePlan(request)); // 목표 시간 수정 화면에서 자정이 지난 경우
 
         datePlan.changeGoalTime(request.getGoalHour(), request.getGoalMinute());
+        return datePlan;
+    }
+
+    public List<Subject> getTodaySubjectsList() {
+        DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
+        return todayPlan.getSubjectList();
     }
 
     public DatePlan findDatePlanByDate(LocalDate date) {
-        return datePlanRepository.findByDate(date)
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        return datePlanRepository.findByDateAndThrow(date);
     }
 
     public DatePlanResponseDTO.StatDTO getStatWithAllSubjectsDTO(DatePlan datePlan) {

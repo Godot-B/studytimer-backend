@@ -26,10 +26,6 @@ public class SubjectService {
     private final DatePlanRepository datePlanRepository;
     private final KeywordRepository keywordRepository;
 
-    public List<Subject> getSubjectsList() {
-        return subjectRepository.findAll();
-    }
-
     public List<String> searchKeywords(String userInput) {
         return keywordRepository.findByKeywordNameContainingIgnoreCase(userInput).stream()
                 .map(Keyword::getKeywordName).toList();
@@ -41,8 +37,7 @@ public class SubjectService {
         int goalTime = request.getGoalHour() * 60 + request.getGoalMinute();
 
         // 추가 시점 날짜의 과목 리스트 중, 같은 이름의 과목 있는지 검사
-        DatePlan datePlan = datePlanRepository.findByDate(LocalDate.now())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        DatePlan datePlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
         List<Subject> subjectList = datePlan.getSubjectList();
         Subject findSubject = subjectList.stream()
                 .filter(subject -> subject.getSubjectName().equals(request.getSubjectName()))
@@ -60,8 +55,7 @@ public class SubjectService {
                     .completed(false)
                     .build();
 
-            newSubject.setDatePlan(datePlanRepository.findByDate(LocalDate.now())
-                    .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND)));
+            newSubject.setDatePlan(datePlanRepository.findByDateAndThrow(LocalDate.now()));
             subjectRepository.save(newSubject);
 
             return newSubject;
@@ -79,23 +73,31 @@ public class SubjectService {
 
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new SubjectHandler(ErrorStatus.SUBJECT_NOT_FOUND));
+        Boolean isStarted = subject.getStarted();
 
-        Keyword keyword = subject.getKeyword();
+        if (isStarted) {
+            DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
+            todayPlan.getSubjectList().remove(subject);
 
-        String deleteSubjectName = subject.getSubjectName();
-        subjectRepository.delete(subject);
+            return "계획에서만 " + subject.getSubjectName();
 
-        if (keyword.getSubjects().isEmpty())
-            keywordRepository.delete(keyword);
+        } else {
+            Keyword keyword = subject.getKeyword();
 
-        return deleteSubjectName;
+            String deleteSubjectName = subject.getSubjectName();
+            subjectRepository.delete(subject);
+
+            if (keyword.getSubjects().isEmpty())
+                keywordRepository.delete(keyword);
+
+            return deleteSubjectName;
+        }
     }
 
     @Transactional
     public String optionalSaveKeyword(Integer subjectIdx) {
 
-        Subject subject = datePlanRepository.findByDate(LocalDate.now())
-                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND))
+        Subject subject = datePlanRepository.findByDateAndThrow(LocalDate.now())
                 .getSubjectList().get(subjectIdx);
 
         if (subject == null)
