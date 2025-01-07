@@ -50,9 +50,8 @@ public class DatePlanService {
     }
 
     public DatePlan findDatePlanByDate(LocalDate date) {
-        DatePlan byDate = datePlanRepository.findByDate(date)
+        return datePlanRepository.findByDate(date)
                 .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
-        return byDate;
     }
 
     public DatePlanResponseDTO.StatDTO getStatWithAllSubjectsDTO(DatePlan datePlan) {

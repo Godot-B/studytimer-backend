@@ -29,7 +29,6 @@ public class TimerController {
         return ApiResponse.onSuccess(response);
     }
 
-
     /**
      * 타이머 시작 & 선택적 키워드 저장
      */

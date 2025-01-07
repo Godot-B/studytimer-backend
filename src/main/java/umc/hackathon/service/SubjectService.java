@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import umc.hackathon.apiPayload.code.status.ErrorStatus;
 import umc.hackathon.apiPayload.exception.handler.DatePlanHandler;
 import umc.hackathon.apiPayload.exception.handler.SubjectHandler;
+import umc.hackathon.domain.DatePlan;
 import umc.hackathon.domain.Subject;
 import umc.hackathon.domain.Keyword;
 import umc.hackathon.repository.DatePlanRepository;
@@ -40,21 +41,19 @@ public class SubjectService {
     @Transactional
     public Subject addSubject(SubjectRequestDTO.AddSubjectDTO request) {
 
-        // 로직 구현 필요
         int goalTime = request.getGoalHour() * 60 + request.getGoalMinute();
 
-        Subject findSubject = subjectRepository.findBySubjectName(request.getSubjectName());
-        Boolean ifCompleted = findSubject.getCompleted();
+        // 추가 시점 날짜의 과목 리스트 중, 같은 이름의 과목 있는지 검사
+        DatePlan datePlan = datePlanRepository.findByDate(LocalDate.now())
+                .orElseThrow(() -> new DatePlanHandler(ErrorStatus.DATEPLAN_NOT_FOUND));
+        List<Subject> subjectList = datePlan.getSubjectList();
+        Subject findSubject = subjectList.stream()
+                .filter(subject -> subject.getSubjectName().equals(request.getSubjectName()))
+                .findAny().orElse(null);
 
-        if (ifCompleted = true) {
-            // 같은 이름, 완료한 과목 : 해당 과목으로 리턴 & 목표공부시간 +=으로 더해주기
-            findSubject.setCompleted(false);
-            findSubject.addSubjectGoalTime(goalTime);
-            return findSubject;
-        } else if (ifCompleted = false) {
-            // 같은 이름, 완료하지 않은 과목
-            throw new SubjectHandler(ErrorStatus.SUBJECT_ALREADY_EXISTS);
-        } else  {
+        // 없다면 신규 생성
+        if (findSubject == null) {
+
             Subject newSubject = Subject.builder()
                     .subjectName(request.getSubjectName())
                     .subjectGoalTime(goalTime)
@@ -69,6 +68,12 @@ public class SubjectService {
             subjectRepository.save(newSubject);
 
             return newSubject;
+        } else {
+            // 있던 과목으로 리턴 & 목표공부시간 +=으로 더해주기
+            findSubject.setCompleted(false);
+            findSubject.addSubjectGoalTime(goalTime);
+            datePlan.getSubjectList().add(findSubject);
+            return findSubject;
         }
     }
 
