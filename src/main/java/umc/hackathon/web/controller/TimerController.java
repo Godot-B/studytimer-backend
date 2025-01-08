@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import umc.hackathon.apiPayload.ApiResponse;
 import umc.hackathon.service.SubjectService;
 import umc.hackathon.service.TimerService;
-import umc.hackathon.web.dto.DatePlanResponseDTO;
 import umc.hackathon.web.dto.TimerRequestDTO;
+import umc.hackathon.web.dto.TimerResponseDTO;
 
 
 @RestController
@@ -23,9 +23,9 @@ public class TimerController {
      */
     @Operation(summary = "타이머 조회", description = "타이머를 조회합니다.")
     @GetMapping("/{subjectIdx}")
-    public ApiResponse<DatePlanResponseDTO.TimerViewDTO> getTimer(@PathVariable Integer subjectIdx) {
+    public ApiResponse<TimerResponseDTO.TimerViewDTO> getTimer(@PathVariable Integer subjectIdx) {
 
-        DatePlanResponseDTO.TimerViewDTO response = timerService.getTimerBySubjectIdx(subjectIdx);
+        TimerResponseDTO.TimerViewDTO response = timerService.getTimerBySubjectIdx(subjectIdx);
         return ApiResponse.onSuccess(response);
     }
 

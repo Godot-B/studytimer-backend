@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.floor;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -57,16 +59,27 @@ public class DatePlanService {
         return datePlanRepository.findByDateAndThrow(date);
     }
 
+    // 잔디 색깔 결정
+    private int checkColorFlag(float totalStudyTime) {
+        int colorFlag = (int) floor(totalStudyTime / 90f); // 1시간 반마다 잔디 색이 진해진다.
+        if (colorFlag >= 4)
+            colorFlag = 4;
+
+        return colorFlag;
+    }
+
     public DatePlanResponseDTO.StatDTO getStatWithAllSubjectsDTO(DatePlan datePlan) {
 
         List<String> allKeywords = keywordRepository.findAll().stream().map(Keyword::getKeywordName).toList();
         List<DatePlan> allDatePlan = datePlanRepository.findAll();
         List<DatePlanResponseDTO.DateInfoDTO> allDateInfoDTOList = new ArrayList<>();
 
+        int colorFlag;
         for (DatePlan iterDatePlan : allDatePlan) {
+            colorFlag = checkColorFlag(iterDatePlan.getTotalStudyTime());
             allDateInfoDTOList.add(DatePlanResponseDTO.DateInfoDTO.builder()
                     .date(iterDatePlan.getDate())
-                    .totalStudyTime(iterDatePlan.getTotalStudyTime())
+                    .colorFlag(colorFlag)
                     .build());
         }
 
@@ -82,10 +95,12 @@ public class DatePlanService {
         List<Subject> subjectsByKeyword = keyword.getSubjects();
         List<DatePlanResponseDTO.DateInfoDTO> allDateInfoDTOList = new ArrayList<>();
 
+        int colorFlag;
         for (Subject subject : subjectsByKeyword) {
+            colorFlag = checkColorFlag(subject.getSubjectStudyTime());
             allDateInfoDTOList.add(DatePlanResponseDTO.DateInfoDTO.builder()
                     .date(subject.getDatePlan().getDate())
-                    .totalStudyTime(subject.getSubjectStudyTime())
+                    .colorFlag(colorFlag)
                     .build());
         }
 
@@ -107,15 +122,4 @@ public class DatePlanService {
                 .hourlyStudyTimesByDate(hourlyStudyTimesDTOList)
                 .build();
     }
-
-    // 뷰 테스트용 DB 업데이트 메서드
-/*    @Transactional
-    public void calcTotalStudyByHour() {
-        for (DatePlan datePlan : datePlanRepository.findAll()) {
-            float totalStudyTimes = datePlan.getHourlyStudyTimes().values().stream().
-                    mapToInt(Integer::intValue).sum();
-            totalStudyTimes += (float) Math.random();
-            datePlan.setTotalStudyTime(totalStudyTimes);
-        }
-    }*/
 }

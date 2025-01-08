@@ -84,7 +84,7 @@ public class SubjectService {
             String deleteSubjectName = subject.getSubjectName();
             subjectRepository.delete(subject);
 
-            if (keyword.getSubjects().isEmpty())
+            if (keyword != null && keyword.getSubjects().isEmpty())
                 keywordRepository.delete(keyword);
 
             return deleteSubjectName;

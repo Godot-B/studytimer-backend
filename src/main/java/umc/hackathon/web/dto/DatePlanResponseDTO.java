@@ -31,33 +31,6 @@ public class DatePlanResponseDTO {
         LocalDateTime createdAt;
     }
 
-
-    @Builder
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class HomeViewDTO {
-
-        Float totalRemainTime;
-
-        List<SubjectResponseDTO.SubjectPreviewDTO> subjectPreviewDTOList;
-    }
-
-    @Builder
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TimerViewDTO {
-
-        Float remainTime; // 과목 별 남은 시간
-
-        Integer goalTime;
-
-        Float totalStudyTime; // 분단위(소수점)
-
-        Integer subjectGoalTime; // 분단위
-    }
-
     @Builder
     @Getter
     @NoArgsConstructor
@@ -99,6 +72,6 @@ public class DatePlanResponseDTO {
 
         LocalDate date;
 
-        Float totalStudyTime; // 모든 과목의, 또는 과목 별
+        Integer colorFlag; // 모든 과목의, 또는 과목 별
     }
 }
