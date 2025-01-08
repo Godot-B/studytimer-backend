@@ -73,9 +73,10 @@ public class TimerService {
     }
 
     @Transactional
-    public void completeSubject(Integer subjectIdx, TimerRequestDTO.StudyLogDTO log) {
+    public Subject completeSubject(Integer subjectIdx, TimerRequestDTO.StudyLogDTO log) {
         Subject subject = calculateStudyTime(subjectIdx, log);
         subject.setCompleted(true);
+        return subject;
     }
 
     @Transactional
@@ -84,17 +85,23 @@ public class TimerService {
         LocalDateTime startTime = log.getStartTime();
         LocalDateTime endTime = log.getEndTime();
 
-        Duration duration = Duration.between(startTime, endTime);
-        // ** 타이머가 24시간 동작 ? 고려 X - 이스터에그 표시 **
-        if (duration.toHours() >= 24) {
-            throw new DatePlanHandler(ErrorStatus.GONGSIN_APPEARED); // 이스터에그를 위한 예외
-        }
-
+        Subject currentSubject;
         if (startTime.toLocalDate().equals(endTime.toLocalDate())) {
-            return calcSameDayStudyTime(subjectIdx, startTime, endTime);
+            currentSubject = calcSameDayStudyTime(subjectIdx, startTime, endTime);
         } else {
             // 자정이 지나고 endTime 기록
-            return calcCrossMidnightStudyTime(subjectIdx, startTime, endTime);
+            currentSubject = calcCrossMidnightStudyTime(subjectIdx, startTime, endTime);
+        }
+        checkGongSin(startTime, endTime);
+        return currentSubject;
+    }
+
+    // ** 타이머가 24시간 동작 ? 고려 X - 이스터에그 표시 **
+    private void checkGongSin(LocalDateTime start, LocalDateTime end) {
+
+        long hoursDiffer = Duration.between(start, end).toHours();
+        if (hoursDiffer >= 24) {
+            throw new DatePlanHandler(ErrorStatus.GONGSIN_APPEARED); // 이스터에그를 위한 예외
         }
     }
 

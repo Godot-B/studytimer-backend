@@ -3,6 +3,7 @@ package umc.hackathon.web.converter;
 import umc.hackathon.domain.Subject;
 import umc.hackathon.web.dto.DatePlanResponseDTO;
 import umc.hackathon.web.dto.SubjectResponseDTO;
+import umc.hackathon.web.dto.TimerResponseDTO;
 
 public class SubjectConverter {
 
@@ -19,6 +20,12 @@ public class SubjectConverter {
                 .subjectName(subject.getSubjectName())
                 .goalTime(subject.getSubjectGoalTime())
                 .breakTime(subject.getBreakTime())
+                .build();
+    }
+
+    public static TimerResponseDTO.RemainTimeDTO toRemainTimeDTO(Subject subject) {
+        return TimerResponseDTO.RemainTimeDTO.builder()
+                .remainTime(subject.getSubjectGoalTime() - subject.getSubjectStudyTime())
                 .build();
     }
 }

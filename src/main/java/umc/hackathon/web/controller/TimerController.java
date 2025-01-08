@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import umc.hackathon.apiPayload.ApiResponse;
+import umc.hackathon.domain.Subject;
 import umc.hackathon.service.SubjectService;
 import umc.hackathon.service.TimerService;
+import umc.hackathon.web.converter.SubjectConverter;
 import umc.hackathon.web.dto.TimerRequestDTO;
 import umc.hackathon.web.dto.TimerResponseDTO;
 
@@ -46,9 +48,9 @@ public class TimerController {
             " 단, 타이머 동작 중 자정을 지나면 날짜 및 일부 과목이 복제됩니다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     @PatchMapping("/{subjectIdx}/pause")
-    public ApiResponse<String> pause(@PathVariable Integer subjectIdx, @RequestBody TimerRequestDTO.StudyLogDTO request) {
-        timerService.calculateStudyTime(subjectIdx, request);
-        return ApiResponse.onSuccess("일시정지 성공");
+    public ApiResponse<TimerResponseDTO.RemainTimeDTO> pause(@PathVariable Integer subjectIdx, @RequestBody TimerRequestDTO.StudyLogDTO request) {
+        Subject currentSubject = timerService.calculateStudyTime(subjectIdx, request);
+        return ApiResponse.onSuccess(SubjectConverter.toRemainTimeDTO(currentSubject));
     }
 
     /**
@@ -58,8 +60,8 @@ public class TimerController {
         " 단, 타이머 동작 중 자정을 지나면 날짜 및 일부 과목이 복제됩니다.")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공")
     @PatchMapping("/{subjectIdx}/stop")
-    public ApiResponse<String> stop(@PathVariable Integer subjectIdx, @RequestBody TimerRequestDTO.StudyLogDTO request) {
-        timerService.completeSubject(subjectIdx, request);
-        return ApiResponse.onSuccess("초기화 성공");
+    public ApiResponse<TimerResponseDTO.RemainTimeDTO> stop(@PathVariable Integer subjectIdx, @RequestBody TimerRequestDTO.StudyLogDTO request) {
+        Subject currentSubject = timerService.completeSubject(subjectIdx, request);
+        return ApiResponse.onSuccess(SubjectConverter.toRemainTimeDTO(currentSubject));
     }
 }

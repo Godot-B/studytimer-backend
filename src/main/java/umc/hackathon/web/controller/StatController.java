@@ -37,12 +37,4 @@ public class StatController {
         DatePlanResponseDTO.StatDTO response = datePlanService.getStatWithSubjectDTO(datePlan, keywordId);
         return ApiResponse.onSuccess(response);
     }
-
-    // 뷰 테스트용 DB 업데이트 API
-    /*@PatchMapping("/")
-    public ApiResponse<String> testSumHourlyStudy() {
-
-        datePlanService.calcTotalStudyByHour();
-        return ApiResponse.onSuccess("datePlan의 총 공부 시간이 모두 올바르게 계산되었습니다.");
-    }*/
 }

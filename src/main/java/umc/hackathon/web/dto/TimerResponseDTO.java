@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class TimerResponseDTO {
+
     @Builder
     @Getter
     @NoArgsConstructor
@@ -21,5 +22,14 @@ public class TimerResponseDTO {
         Float totalStudyTime; // 분단위(소수점)
 
         Integer subjectGoalTime; // 분단위
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RemainTimeDTO {
+
+        Float remainTime; // 일시정지/초기화 후 남은 시간
     }
 }
