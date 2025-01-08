@@ -33,7 +33,7 @@ public class DatePlanConverter {
     }
 
 
-    public static DatePlanResponseDTO.HomeViewDTO toHomeViewDTO(List<Subject> subjects) {
+    public static SubjectResponseDTO.HomeViewDTO toHomeViewDTO(List<Subject> subjects) {
 
         float totalRemainTime = 0.0f;
 
@@ -52,7 +52,7 @@ public class DatePlanConverter {
             subjectPreviewList.add(subjectDTO);
         }
 
-        return DatePlanResponseDTO.HomeViewDTO.builder()
+        return SubjectResponseDTO.HomeViewDTO.builder()
                 .totalRemainTime(totalRemainTime)
                 .subjectPreviewDTOList(subjectPreviewList)
                 .build();

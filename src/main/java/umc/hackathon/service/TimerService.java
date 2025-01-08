@@ -10,8 +10,8 @@ import umc.hackathon.apiPayload.exception.handler.SubjectHandler;
 import umc.hackathon.domain.DatePlan;
 import umc.hackathon.domain.Subject;
 import umc.hackathon.repository.DatePlanRepository;
-import umc.hackathon.web.dto.DatePlanResponseDTO;
 import umc.hackathon.web.dto.TimerRequestDTO;
+import umc.hackathon.web.dto.TimerResponseDTO;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -27,14 +27,14 @@ public class TimerService {
 
     private final DatePlanRepository datePlanRepository;
 
-    public DatePlanResponseDTO.TimerViewDTO getTimerBySubjectIdx(Integer subjectIdx) {
+    public TimerResponseDTO.TimerViewDTO getTimerBySubjectIdx(Integer subjectIdx) {
 
         DatePlan todayPlan = datePlanRepository.findByDateAndThrow(LocalDate.now());
         Subject subject = getSubjectByIndex(subjectIdx, todayPlan);
         Integer subjectGoalTime = subject.getSubjectGoalTime();
         Float subjectStudyTime = subject.getSubjectStudyTime();
 
-        return DatePlanResponseDTO.TimerViewDTO.builder()
+        return TimerResponseDTO.TimerViewDTO.builder()
                 .subjectName(subject.getSubjectName())
                 .goalTime(todayPlan.getGoalTime())
                 .totalStudyTime(todayPlan.getTotalStudyTime())
