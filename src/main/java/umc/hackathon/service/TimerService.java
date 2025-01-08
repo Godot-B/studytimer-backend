@@ -35,6 +35,7 @@ public class TimerService {
         Float subjectStudyTime = subject.getSubjectStudyTime();
 
         return DatePlanResponseDTO.TimerViewDTO.builder()
+                .subjectName(subject.getSubjectName())
                 .goalTime(todayPlan.getGoalTime())
                 .totalStudyTime(todayPlan.getTotalStudyTime())
                 .subjectGoalTime(subjectGoalTime)

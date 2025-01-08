@@ -49,6 +49,8 @@ public class DatePlanResponseDTO {
     @AllArgsConstructor
     public static class TimerViewDTO {
 
+        String subjectName;
+
         Float remainTime; // 과목 별 남은 시간
 
         Integer goalTime;
